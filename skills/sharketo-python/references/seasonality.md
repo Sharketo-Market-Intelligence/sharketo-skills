@@ -1,4 +1,4 @@
-# Seasonality, SDK 0.1.14b2
+# Seasonality, SDK 0.1.14b3
 
 For client reuse and repeated reads, see [application integration](integration.md#http-reads).
 
@@ -12,7 +12,7 @@ For client reuse and repeated reads, see [application integration](integration.m
 - `horizon_trading_days` is the configured trading-step horizon for the asset's calendar, not NYSE weekdays or an application-derived date range. It includes weekends for weekend-trading assets. The generator clips historical windows at year end, so the configured horizon does not promise equal sample lengths. Do not reconstruct window dates in Python.
 - Percent fields already use percentage units. Display `1.25` as `1.25%`; never multiply by 100. These are historical backend statistics, not supplied forecasts or investment recommendations.
 - For the compact catalog, monitor and momentum endpoints, `as_of` is the maximum analyzed source date or unknown. It is not publication time or every asset's date. The responses specify `as_of_semantics='maximumAnalyzedSourceDate'` and `per_asset_freshness='unknown'`. Never infer a TTL or per-row freshness. Separate fetches are nontransactional, even when their dates match. Retain each response's source date, fetch date and unavailable list rather than joining them into a synchronized record.
-- Access requires an API key, verified email, `ApiKeys` and `Models`. Inventory access diagnostics do not establish Seasonality availability. Sanitized `APIError` codes include `FEATURE_NOT_AVAILABLE`, `SUBSCRIPTION_REQUIRED`, `RATE_LIMITED`, `SEASONALITY_UNAVAILABLE` and `DEPENDENCY_UNAVAILABLE`. Unavailable artifacts produce errors, not empty successes.
+- Access requires effective Apex access through `developer_api`, an API key, verified email, `ApiKeys` and `Models`. Inventory access diagnostics do not establish Seasonality availability. Sanitized `APIError` codes include `FEATURE_NOT_AVAILABLE`, `SUBSCRIPTION_REQUIRED`, `RATE_LIMITED`, `SEASONALITY_UNAVAILABLE` and `DEPENDENCY_UNAVAILABLE`. Unavailable artifacts produce errors, not empty successes.
 
 ## Offline validation fixture, synthetic seasonal comparison
 

@@ -1,6 +1,11 @@
-# Inventory rendering contract, SDK 0.1.14b2
+# Inventory rendering contract, SDK 0.1.14b3
 
 For stream lifecycle and status refresh, see [application integration](integration.md#streams).
+
+Summary and rich inventory require effective Apex access through `developer_api`, along
+with existing verified API-key, terms and family requirements. The backend is authoritative;
+see [access diagnostics](sdk.md#read-only-diagnostics-and-terminal-errors). Do not add a
+`get_access()` preflight for rich options.
 
 ## Ownership and product choice
 

@@ -1,4 +1,4 @@
-# Crypto current inventory, SDK 0.1.14b2
+# Crypto current inventory, SDK 0.1.14b3
 
 For stream lifecycle and status refresh, see [application integration](integration.md#streams).
 
@@ -58,7 +58,8 @@ Python formulas are not a substitute for missing SDK fields.
   128-byte opaque keys, 32-byte expiration text and 8 MiB decoded envelopes.
   The materialized payload reserves 1 KiB. Slow consumers may close.
 
-Access requires an API key with verified email, ApiKeys and InventoryCrypto. Existing
+Access requires effective Apex access through `developer_api` and an API key with
+verified email, ApiKeys and InventoryCrypto. Existing
 quotas and policy apply. For agent-run live checks, follow the
 [validation workflow](workflow.md).
 

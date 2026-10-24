@@ -160,6 +160,12 @@ Refresh status independently of snapshot arrival. Subscription iteration yields 
 
 For rich inventory, retain `InventoryStreamSnapshot`, consume its complete `.inventory`, and follow [inventory rendering](inventory-rendering.md). Disable `include_history` and `include_bookmap` for current-only views. Enable profiles separately when needed. Summary and crypto wrappers have their own documented age semantics.
 
+A subscription-local `StreamError` ends that subscription and its shared consumers, not
+unrelated healthy subscriptions. The application may explicitly create a new subscription
+on the same healthy client after resolving the cause, under its bounded recovery policy.
+Retirement/version errors do not trigger automatic reconnects. See
+[terminal service errors](sdk.md#service-availability-and-compatible-versions).
+
 `max_reconnects` applies across the client's stream manager lifetime. It does not reset after a successful connection. A terminal manager failure affects its subscriptions. Opening a new subscription on that client raises the stored error. Mark any retained result disconnected and close the failed client. Create a new client only under the application's bounded recovery policy. Diagnose authentication, entitlement and protocol failures instead of restarting blindly. The SDK handles transport recovery and new baselines. Applications do not reconstruct wire deltas.
 
 ## Configuration and error boundaries
@@ -174,7 +180,14 @@ from sharketo import SharketoError
 
 
 def sdk_error_metadata(error):
-    fields = ("status_code", "code", "request_id", "retry_after", "required_capability")
+    fields = (
+        "status_code",
+        "code",
+        "request_id",
+        "retry_after",
+        "required_capability",
+        "suggested_plan",
+    )
     return {
         "kind": type(error).__name__,
         **{name: getattr(error, name) for name in fields if getattr(error, name, None) is not None},
@@ -184,7 +197,7 @@ def sdk_error_metadata(error):
 def run_report(tickers, consume, report_issue):
     try:
         api_key = os.environ["SHARKETO_API_KEY"]
-        api_url = os.environ["SHARKETO_API_URL"]
+        api_url = os.environ.get("SHARKETO_API_URL")
         snapshots = read_dealer_snapshots(api_key, api_url, tickers)
     except (KeyError, ValueError):
         report_issue({"kind": "configuration"})
@@ -201,3 +214,23 @@ Handle errors and observe task failures and cancellation in the application's st
 ## Separate application results from supplied data
 
 Keep supplied SDK records, units, nulls and provenance unchanged. Label application calculations separately from SDK analytics. Do not replace a server total with a display subtotal.
+
+### Calendar-date display
+
+Render fields documented as calendar dates with their supplied meaning. Do not add midnight,
+convert timezones or use these dates to estimate intraday freshness. Keep declared unknown
+freshness separate from local receipt time.
+
+```python
+def calendar_date_label(value: str | None, *, label: str) -> str:
+    return f"{label}: {value if value is not None else 'unknown'}"
+
+
+assert calendar_date_label("2026-01-30", label="Engine index date") == (
+    "Engine index date: 2026-01-30"
+)
+assert calendar_date_label(None, label="Analyzed source date") == "Analyzed source date: unknown"
+```
+
+Choose the label from the selected family's semantics. For CTA, pass `snapshot.as_of` with
+`label="Engine index date"`; for RRG detail, use `label="Analyzed source date"`.

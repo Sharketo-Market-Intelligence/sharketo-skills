@@ -1,4 +1,4 @@
-# Curated RRG, SDK 0.1.14b2
+# Curated RRG, SDK 0.1.14b3
 
 For client reuse and repeated reads, see [application integration](integration.md#http-reads).
 
@@ -14,12 +14,22 @@ For client reuse and repeated reads, see [application integration](integration.m
 - `analysis.parameters.fast_window_bars`, `slow_window_bars`, `momentum_window_bars` and `normalization_window_bars` retain the backend's numerical bar settings. `analysis.regime.below_long_term_average` is the supplied boolean comparison against the long-term average of 200 daily bars. Its wire key is `belowLongTermAverage`. The parameter wire keys are `fastWindowBars/slowWindowBars/momentumWindowBars/normalizationWindowBars`.
 - Screener `analysis` retains the supplied `universe`, `membership` and verbatim `note`. These describe curated current membership or membership with an embedded date. They do not guarantee point-in-time historical constituents. Applying current membership to history carries survivorship bias. Preserve `benchmark`, parameters, regime, member `sector/cap_tier` with values `large|small`, state, scores and `weekly_spark`. The spark contains at most nine normalized [ratio, momentum] pairs. Do not invent timestamps.
 - `statistics.quadrants` fixes the order as leading, weakening, lagging, improving. Transition counts form a 4 by 4 matrix with its supplied sample size. `median_holding_weeks` has four nullable values. The forward-return horizon is `forward_returns.horizon_trading_days=21`. `all/northeast` each contain four buckets with `mean_relative_return_percentage_points`, `hit_rate_percent` and `sample_size`. Preserve sample counts, units and null values in zero-sample buckets. These descriptive source statistics are not guaranteed forward returns or recommendations. Do not reinterpret northeast conditioning.
-- Access requires an API key, verified email, `ApiKeys` and `Models`. Existing key restrictions and the shared-account RRG budget of 60 requests per minute apply. All responses use no-store. Typed `APIError` retains authentication, validation, feature, entitlement and rate metadata, including Retry-After for 429 responses. Missing, corrupt, oversized or incoherent artifacts produce sanitized 503 `RRG_UNAVAILABLE` errors. A budget dependency failure produces `DEPENDENCY_UNAVAILABLE`, not a fabricated empty success.
+- Access requires effective Apex access through `developer_api`, an API key, verified email, `ApiKeys` and `Models`. Existing key restrictions and the shared-account RRG budget of 60 requests per minute apply. All responses use no-store. Typed `APIError` retains authentication, validation, feature, entitlement and rate metadata, including Retry-After for 429 responses. Missing, corrupt, oversized or incoherent artifacts produce sanitized 503 `RRG_UNAVAILABLE` errors. A budget dependency failure produces `DEPENDENCY_UNAVAILABLE`, not a fabricated empty success.
 - Public data limits include at most 32 catalog groups, 128 group members, 3000 screener members, 500 daily dates and 156 weekly dates, plus bounded strings and counts. The SDK has a separate HTTP JSON response default of `max_response_bytes=1_048_576`, or 1 MiB. Valid larger RRG snapshots can exceed that default. For bounded larger reads, explicitly construct `SharketoClient(..., max_response_bytes=8_388_608)` or `AsyncSharketoClient(..., max_response_bytes=8_388_608)`, as in the fixture below. This sets an 8 MiB client-wide response bound, not a per-RRG override, and leaves global defaults unchanged. The explicit response bound can still reject a larger response with `ProtocolError`. Do not crop or repair invalid financial data or remove bounds to force success.
+
+## Chart labels and colors
+
+Carry `state.daily` or `state.weekly` ratio, momentum and quadrant together into the chart.
+Use the supplied `quadrant` for labels and colors. Published coordinates are rounded, so
+comparisons against 100 can disagree with the supplied classification. For example, ratio
+99.50 and momentum 100.00 with quadrant `lagging` must retain a lagging label and style.
+Keep a null quadrant unknown rather than deriving one from coordinates.
 
 ## Offline validation fixture, installed-only synthetic data
 
-The bundled [synthetic fixture](rrg_fixture.py) exercises all three methods on both clients. It preserves zero, null coordinates, a failed member and a failed screener.
+The bundled [synthetic fixture](rrg_fixture.py) exercises all three methods on both clients.
+Its `rotation_point` adapter preserves supplied quadrants at rounded 100 boundaries. It also
+preserves zero, null coordinates, a failed member and a failed screener.
 
 ```python
 from importlib import resources

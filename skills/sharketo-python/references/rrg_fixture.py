@@ -70,6 +70,32 @@ members[0].update(
         "scores": scores,
     },
 )
+for member, (quadrant, ratio, momentum, distance) in zip(
+    members[2:5],
+    [
+        ("lagging", 99.5, 100.0, 0.5),
+        ("weakening", 100.5, 100.0, 0.5),
+        ("improving", 100.0, 100.5, 0.5),
+    ],
+    strict=True,
+):
+    rounded_frame = frame | {
+        "quadrant": quadrant,
+        "ratio": ratio,
+        "momentum": momentum,
+        "distance": distance,
+        "barsInQuadrant": 1,
+    }
+    member.update(
+        available=True,
+        unavailableReason=None,
+        analysis={
+            "daily": {"ratio": [ratio], "momentum": [momentum]},
+            "weekly": {"ratio": [ratio], "momentum": [momentum]},
+            "state": {"daily": rounded_frame.copy(), "weekly": rounded_frame.copy(), "hook": None},
+            "scores": scores,
+        },
+    )
 catalog = {
     "schemaVersion": "rrg-catalog.v1",
     "asOf": "2026-01-30",
@@ -134,6 +160,10 @@ def respond(request):
     return httpx.Response(200, json=payloads[request.url.path])
 
 
+def rotation_point(state):
+    return {"x": state.ratio, "y": state.momentum, "quadrant": state.quadrant}
+
+
 def inspect(results):
     for result, root, path in zip(
         results, (RrgCatalogV1, RrgGroupV2, RrgScreenerV2), paths, strict=True
@@ -144,6 +174,17 @@ def inspect(results):
     member = group_result.analysis.members[0]
     assert member.analysis.scores.momentum1_month_percent == 0.0
     assert member.analysis.weekly.ratio[-1] is None  # no carry-forward or invented zero
+    assert rotation_point(member.analysis.state.weekly) == {"x": None, "y": None, "quadrant": None}
+    for timeframe in ("daily", "weekly"):
+        points = [
+            rotation_point(getattr(item.analysis.state, timeframe))
+            for item in group_result.analysis.members[2:5]
+        ]
+        assert points == [
+            {"x": 99.5, "y": 100.0, "quadrant": "lagging"},
+            {"x": 100.5, "y": 100.0, "quadrant": "weakening"},
+            {"x": 100.0, "y": 100.5, "quadrant": "improving"},
+        ]
     assert group_result.analysis.members[1].unavailable_reason == "analysisFailed"
     assert screener_result.as_of is None and screener_result.analysis is None
     print("VLUE | 1m percent=0.0 | latest ratio=unknown | source=2026-01-30")

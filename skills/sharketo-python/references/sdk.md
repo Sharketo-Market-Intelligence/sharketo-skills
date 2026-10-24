@@ -74,8 +74,37 @@ Server omissions, coalescing and latest-only delivery mean replay may be incompl
 ## Read-only diagnostics and terminal errors
 
 - `ValueError` covers invalid configuration and arguments, including URLs, keys, tickers, windows, rich interests and missing `websocket_url` for subscriptions. `from_env()` also raises `ValueError` for missing or invalid keys and blank or invalid URL variables. Handle these separately from operational SDK failures. Application code that indexes environment variables may raise `KeyError`. Validate inputs before launching background work.
-- Catch `SharketoError` for operational SDK failures. `APIError` exposes `status_code`, `code`, `request_id`, `retry_after` and `required_capability`. `StreamError` has corresponding stream metadata. `ProtocolError`, `TransportError` and `SDKClosedError` cover schema, transport and lifecycle failures. Follow [sanitized error handling](integration.md#configuration-and-error-boundaries). Keep raw bodies, headers, credentials and transport exceptions out of diagnostics.
-- `get_access()` validates existing inventory-summary credentials and reports inventory access and budgets. The API rejects browser sessions and requires current account-level Developer API terms acceptance, verified email plus `api_keys` and `inventory.index` capabilities. Keys have a one-IP-per-minute limit. Read other request budgets from the response.
+- Catch `SharketoError` for operational SDK failures. `APIError` exposes `status_code`, `code`, `request_id`, `retry_after`, `required_capability` and optional `suggested_plan`. `StreamError` has corresponding stream metadata. `ProtocolError`, `TransportError` and `SDKClosedError` cover schema, transport and lifecycle failures. Follow [sanitized error handling](integration.md#configuration-and-error-boundaries). Keep raw bodies, headers, credentials and transport exceptions out of diagnostics.
+- `get_access()` validates existing inventory-summary credentials and reports inventory access and budgets. The API rejects browser sessions and requires current account-level Developer API terms acceptance, verified email, effective Apex access through `developer_api`, and `api_keys` / `inventory.index` capabilities. The v1 response's `required_capabilities` remains the inventory-family pair `api_keys` / `inventory.index`, not every admission rule; Apex is enforced independently. Keys have a one-IP-per-minute limit. Read other request budgets from the response.
 - `DEVELOPER_TERMS_REQUIRED` means missing or stale account acceptance, not a bad key. HTTP returns terminal `APIError` with status 403; a subscription-addressed WebSocket error raises terminal `StreamError` for that subscription (including shared consumers), leaving unrelated subscriptions live. Neither triggers automatic retry/reconnect. Ask the user to personally review and accept the current terms in the portal via [setup](setup.md#2-review-the-terms-and-reuse-or-generate-a-key); agents must not accept or rotate keys for agreement. Existing customers also need explicit acceptance before Developer requests resume. Resume only after user confirmation, with a new subscription/request under the application’s bounded policy.
-- Diagnose authentication, entitlement, feature-disabled and unsupported-schema failures instead of retrying indefinitely. For rate or IP restrictions, use returned retry metadata, bound retries and confirm single-egress deployment. A new subscription on the same client cannot recover a terminal stream manager. See [stream recovery](integration.md#streams).
+- All SDK Developer HTTP/WS data requires effective Apex access, including prices and `get_access()`. The server evaluates valid paid or explicit grants and their expiry, not just a billing label. Pro portal features, approved Key Levels integrations and API-key management keep their existing rules. When access is denied, preserve sanitized `required_capability="developer_api"` and `suggested_plan="apex"` if returned. HTTP subscription/capability denials are terminal without retries, even with retry headers. A correctly subscription-addressed WebSocket denial ends that subscription and all shared consumers without reconnecting; unrelated streams remain usable. Resolve authorized access before an explicit new request/subscription. Do not add a client-side plan gate or an extra `get_access()` preflight.
+- Diagnose authentication, entitlement, feature-disabled, retired-service and unsupported-version/schema failures instead of retrying indefinitely. For rate or IP restrictions, use returned retry metadata, bound retries and confirm single-egress deployment. A new subscription on the same client cannot recover a terminal stream manager. See [stream recovery](integration.md#streams).
+
+### Service availability and compatible versions
+
+| Code | Meaning and action |
+| --- | --- |
+| `FEATURE_NOT_AVAILABLE` | The feature is disabled. HTTP returns 404. No automatic retry; confirm availability before explicitly trying again. |
+| `SERVICE_RETIRED` | The operation/service has been withdrawn. HTTP returns 410. No automatic retry; investigate alternatives. |
+| `UNSUPPORTED_API_VERSION` | The requested API/service version is unsupported. HTTP returns 400. No automatic retry; confirm a compatible contract. |
+
+These codes remain terminal even if an HTTP response includes `Retry-After` or a transient
+status. Other incidental backend failures keep bounded HTTP retry behavior. Ordinary unknown
+routes/services remain not-found, not version errors.
+
+A valid WebSocket lifecycle error addressed to a subscription ends that subscription and all
+its shared consumers, leaving unrelated healthy streams usable. This also applies to
+unfamiliar future codes. Known transient `RATE_LIMITED`, `SLOW_CONSUMER` and `INTERNAL_ERROR`
+controls retain bounded connection-wide reconnect behavior. Connection-level
+authentication/security and unsupported-schema errors still fail the shared manager;
+malformed routing raises `ProtocolError`. After a subscription-local failure,
+create a new subscription only as an explicit application decision under a bounded policy.
+Do not turn an unknown error code into an automatic reconnect loop.
+
+SDK release versions and API contract versions are separate. An installed package does not
+guarantee continued service availability. Future breaking HTTP contracts use new URL versions
+and breaking streams use distinct versioned service identifiers. Unexpected response schemas
+raise `ProtocolError`. Do not bypass validation, automatically upgrade/downgrade packages or
+rewrite endpoints to work around these errors. Optional future error fields are ignored.
+
 For agent-run live checks, follow [validation](workflow.md).

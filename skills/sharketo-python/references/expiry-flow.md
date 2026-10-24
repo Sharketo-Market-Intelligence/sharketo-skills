@@ -1,4 +1,4 @@
-# Expiry flow, SDK 0.1.14b2
+# Expiry flow, SDK 0.1.14b3
 
 For client reuse and repeated reads, see [application integration](integration.md#http-reads).
 
@@ -12,7 +12,7 @@ For client reuse and repeated reads, see [application integration](integration.m
 - `gross_contracts` is standing gross positions, the sum of absolute call and put positions, not hourly traded volume. `institutional_contracts` is a cumulative expiration-life classifier count. It is nonnegative and within the signed-i64 range. `institutional_net_premium_usd` is finite signed cumulative expiration-life premium in USD. Positive values mean customer premium paid; negative values mean premium collected. Do not sum hourly snapshots as increments or infer causal changes or trades. Roll attribution applies per leg to the closed or opened expiration. Nearest-expiration package counts are not exposed.
 - All three metrics are nonnullable and finite. Gross positions and classifier counts are nonnegative. Preserve valid zero and signed premium rather than inventing nulls or zero fallbacks. The SDK supplies no local classifiers or financial analytics. Do not present application comparisons or alerts as backend outputs.
 - `availability="available"` means selected rows exist. `"empty"` means only that zero rows were selected. The reason for an empty result is unknown. You cannot distinguish never-recorded data, pruned data, data outside the selection or other absence. Neither empty nor available establishes source readiness, freshness or provider health. Source retention may prune old expirations.
-- Access requires an API key, verified email and existing `ApiKeys`/`InventoryIndex` capabilities. The shared-account inventory budget of 60 requests per minute and existing key budgets apply. All outward responses are no-store. Service dependency or read failures, and corrupt identity, metrics, order or bounds return sanitized 503 `EXPIRY_FLOW_UNAVAILABLE`. A busy service may return `EXPIRY_FLOW_BUSY`. Existing typed errors for authentication, validation, entitlement, features and rate limits apply. Do not fabricate empty success responses. `get_access()` remains summary-only.
+- Access requires effective Apex access through `developer_api`, an API key, verified email and existing `ApiKeys`/`InventoryIndex` capabilities. The shared-account inventory budget of 60 requests per minute and existing key budgets apply. All outward responses are no-store. Service dependency or read failures, and corrupt identity, metrics, order or bounds return sanitized 503 `EXPIRY_FLOW_UNAVAILABLE`. A busy service may return `EXPIRY_FLOW_BUSY`. Existing typed errors for authentication, validation, entitlement, features and rate limits apply. Do not fabricate empty success responses. `get_access()` remains summary-only.
 
 ## Offline validation fixture, installed-only synthetic data
 

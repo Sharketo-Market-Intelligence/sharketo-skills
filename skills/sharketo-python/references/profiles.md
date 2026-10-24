@@ -1,4 +1,4 @@
-# Exposure profiles, SDK 0.1.14b2
+# Exposure profiles, SDK 0.1.14b3
 
 For stream lifecycle and status refresh, see [application integration](integration.md#streams).
 
@@ -17,7 +17,7 @@ For stream lifecycle and status refresh, see [application integration](integrati
 - Preserve the supplied price grid and sample order. Different buckets can use different grids. No fixed grid size or range is promised. Empty buckets have empty metric tuples. The grid need not include current spot. Do not assert that sampled or interpolated values equal `exposure_totals` or window totals. Those are separate current-state products.
 - `0DTE/1DTE/WEEKLY/MONTHLY/ALL` are expiry groupings, unrelated to `time_window`. At the valuation reference, the four primary groups are disjoint. They cover the New York date, the next open-market date, the following four open-market dates and then the following seventeen. They are not calendar-week or calendar-month labels, nor nested totals. ALL can include eligible expirations beyond them. Use supplied `tracked_expirations.primary_bucket`, including unknown and unbucketed values. Do not reproduce calendar or fallback classification.
 - The curve reference describes the backend's valuation context, not the wall clock used to resolve session history. A newly received full baseline may have older curves and a newer session reference. Keep the curve reference, current-state reference, nullable `metadata.data_as_of_timestamp`, runtime and stale-volatility signals, local `snapshot.received_at_ms`, monotonic `receipt_age_seconds` and dynamic `disconnected` separate. Neither recent receipt nor curve reference proves fresh provider inputs. Rich streams have no summary ten-second TTL.
-- Profiles use the existing inventory policy for API keys, verified email and capabilities. `get_access()` remains summary-specific and does not discover profile availability.
+- Profiles require effective Apex access through `developer_api` and the existing inventory policy for API keys, verified email and family capabilities. `get_access()` remains summary-specific and does not discover profile availability.
 
 ## Offline validation fixture (installed package)
 

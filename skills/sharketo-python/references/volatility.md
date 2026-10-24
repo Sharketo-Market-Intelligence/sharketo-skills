@@ -1,4 +1,4 @@
-# Curated Volatility, SDK 0.1.14b2
+# Curated Volatility, SDK 0.1.14b3
 
 For client reuse and repeated reads, see [application integration](integration.md#http-reads).
 
@@ -37,7 +37,7 @@ Forecast wire keys are `adaptive`, `forecast21d` and `fitScore`.
 
 - All numbers must be finite and bounded, and dates must be canonical. Cone windows, RV dates and IV legs must be ordered. RV arrays must align, the ratio tail must be exact, and the 21-session forecast and fit score must have paired availability. Identities and counts must be coherent. Limits are nine cones, 504 RV rows, three expected-move horizons, four IV legs, four conditional buckets, 32 VX rows and 20,000 rows independently per term history. There must be exactly three state rows. Do not silently truncate data. VX expiry may extend at most 3,660 days from generation, and DTE must equal that exact calendar-day difference. Other source dates end no later than generation.
 - SDK HTTP has a default response bound of 1 MiB. Valid larger snapshots can exceed that default. For larger explicit bounded reads, use client `max_response_bytes=8_388_608`. This sets an 8 MiB client-wide response bound, not a per-Volatility override, and leaves global defaults unchanged. A larger response can still be rejected with `ProtocolError`. Keep a finite response bound rather than removing it to force success.
-- Access requires an API key, verified email, `ApiKeys` and `Models`. Existing key restrictions and the shared-account budget of 60 requests per minute apply. Typed `APIError` preserves safe authentication, feature, entitlement and rate metadata. A 429 response has Retry-After; a quota dependency failure is 503 `DEPENDENCY_UNAVAILABLE`.
+- Access requires effective Apex access through `developer_api`, an API key, verified email, `ApiKeys` and `Models`. Existing key restrictions and the shared-account budget of 60 requests per minute apply. Typed `APIError` preserves safe authentication, feature, entitlement and rate metadata. A 429 response has Retry-After; a quota dependency failure is 503 `DEPENDENCY_UNAVAILABLE`.
 
 ## Offline validation fixture, installed-only synthetic data
 

@@ -1,4 +1,4 @@
-# Daily inventory history, SDK 0.1.14b2
+# Daily inventory history, SDK 0.1.14b3
 
 For client reuse and repeated reads, see [application integration](integration.md#http-reads).
 
@@ -26,7 +26,7 @@ For client reuse and repeated reads, see [application integration](integration.m
 | `dataset_omitted_sessions_lower_bound` | This is a dataset-wide lower bound, not a selected-range gap count or exact total. |
 | `dataset_trimmed_leading_sessions/trailing_sessions` | These describe existing dataset-wide edge trimming, not selection omissions. |
 
-History requires an existing verified server-side API key with `ApiKeys` + `InventoryIndex`. It shares the account's inventory summary and access quota of 60 requests per minute. Existing API-key budgets also apply: 8 requests per second, 200 per minute and one distinct IP per minute. Browser sessions are not accepted.
+History requires effective Apex access through `developer_api` and an existing verified server-side API key with `ApiKeys` + `InventoryIndex`. It shares the account's inventory summary and access quota of 60 requests per minute. Existing API-key budgets also apply: 8 requests per second, 200 per minute and one distinct IP per minute. Browser sessions are not accepted.
 
 Successful responses are `no-store` and contain at most 366 rows and 1,048,576 uncompressed encoded JSON bytes. Missing and valid-empty sources return their corresponding 200 states. Unreadable, corrupt, invalid or oversized artifacts return sanitized `503 HISTORY_UNAVAILABLE`, never an empty or partial fallback. Existing 400/401/403/404/429 boundaries remain. Honor bounded retry metadata rather than retrying without limits.
 

@@ -1,4 +1,4 @@
-# CTA Flow, SDK 0.1.14b2
+# CTA Flow, SDK 0.1.14b3
 
 For client reuse and repeated reads, see [application integration](integration.md#http-reads).
 
@@ -31,7 +31,8 @@ For client reuse and repeated reads, see [application integration](integration.m
   time, artifact modification time or local fetch completion. Preserve
   `per_metric_freshness="unknown"`. Do not infer a TTL, readiness or live health.
   Keep local fetch metadata separate.
-- Access requires an API key, verified email, `ApiKeys` and `Models`. Existing key
+- Access requires effective Apex access through `developer_api`, an API key, verified
+  email, `ApiKeys` and `Models`. Existing key
   restrictions and a separate shared-account CTA budget of 60 requests per minute apply.
   All responses are no-store.
   Typed `APIError` includes 404 `FEATURE_NOT_AVAILABLE`, 403 `EMAIL_NOT_VERIFIED` or

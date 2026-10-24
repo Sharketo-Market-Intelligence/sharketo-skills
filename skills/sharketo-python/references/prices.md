@@ -1,4 +1,4 @@
-# Prices, SDK 0.1.14b2
+# Prices, SDK 0.1.14b3
 
 For stream lifecycle and status refresh, see [application integration](integration.md#streams).
 
@@ -43,7 +43,9 @@ For stream lifecycle and status refresh, see [application integration](integrati
   the subscription and client. Reconnect requires a new full baseline. Retained values stay
   transport-stale until replacement, and old wrappers remain disconnected even after a new
   baseline. A connected downstream socket does not prove provider health.
-- API-key access requires verified email, `api_keys` and `market_prices.live`.
+- API-key access requires effective Apex access through `developer_api`, verified email,
+  `api_keys` and `market_prices.live`. Pro browser-session price eligibility does not
+  authorize SDK/API-key subscriptions to the shared service.
   Inventory access diagnostics do not establish price access. Existing shared subscription,
   rate and revocation policies apply. Transport errors use the
   [SDK error boundary](sdk.md#read-only-diagnostics-and-terminal-errors).

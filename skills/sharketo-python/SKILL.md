@@ -3,10 +3,18 @@ name: sharketo-python
 description: Use when integrating the Sharketo Python SDK into an application, service, report, notebook or dashboard. Covers Index Inventory, prices, crypto inventory, Dealer Exposures, expiry flow, daily history, Seasonality, Volatility, RRG and CTA Flow APIs, async streams, data interpretation, installation, first-time API key setup and read-only access diagnostics.
 license: LICENSE
 metadata:
-  version: "0.1.14b2"
+  version: "0.1.14b3"
 ---
 
 # Sharketo Python SDK
+
+## Developer API access
+
+All SDK data access requires effective Apex access, including live prices and
+`get_access()` diagnostics. A usable key or Pro portal/integration access is insufficient.
+The backend evaluates effective access, including valid existing grants; do not infer it
+from a billing label or add a client-side plan gate/preflight. For denied access, preserve
+sanitized capability/plan metadata and follow [terminal diagnostics](references/sdk.md#read-only-diagnostics-and-terminal-errors).
 
 ## Personal-use scope
 
@@ -17,7 +25,7 @@ sharing and code publication.
 
 ## Start from the user's application
 
-1. If the SDK is missing or its version is uncertain, follow [installation](references/install.md) for the matching TestPyPI beta and offline verification. Skill installation alone does not install the SDK.
+1. If the SDK is missing or its version is uncertain, follow [installation](references/install.md) for the matching PyPI release and offline verification. Skill installation alone does not install the SDK.
 2. Select a family below and read its API and data semantics before coding. For client options, summary models, errors or stream limits, read the relevant section of the [SDK reference](references/sdk.md).
 3. Use [application integration](references/integration.md) for client reuse, stream lifecycle, status refresh and error handling.
 4. Check the changed behavior with the application's tests and the relevant guide's offline fixture. For agent-run live checks, follow the [validation workflow](references/workflow.md).
@@ -46,6 +54,6 @@ sharing and code publication.
 
 - Consume complete replacement states instead of handling raw full, delta or tail messages.
 - Preserve supplied financial values, classifications, units, signs, provenance and null versus zero. Label application calculations separately.
-- Keep source time, publication time, receipt time and transport status separate. If source freshness is unknown, leave it unknown.
+- Keep source time, publication time, receipt time and transport status separate. If source freshness is unknown, leave it unknown. For calendar-date fields, follow [date-only display](references/integration.md#calendar-date-display).
 - Keep API keys server-side and out of browser inputs, frontend bundles, notebook cells and outputs, URLs and logs.
 - For production defaults or custom environments, follow [endpoint configuration](references/integration.md#endpoints-and-environment-configuration).

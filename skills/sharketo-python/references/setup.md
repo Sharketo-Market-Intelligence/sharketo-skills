@@ -14,6 +14,13 @@ is unavailable, ask for non-secret labels or the eligibility message. Follow the
 current requirements; leave account and subscription changes to the user or operator.
 Continue when the user can identify the key section and its current state.
 
+All SDK Developer data access requires effective Apex access, including live prices and
+`get_access()` diagnostics. Pro may still permit API-key creation/rotation, portal features
+and approved NinjaTrader/TradingView Key Levels integrations under their existing rules.
+Possessing a usable key does not authorize Developer data. The server evaluates effective
+access, including valid existing grants. Leave any subscription changes to the user;
+do not rotate a key or add an access preflight to resolve a plan denial.
+
 ## 2. Review the terms and reuse or generate a key
 
 The user personally reviews and accepts the current terms through **Read Developer API terms**

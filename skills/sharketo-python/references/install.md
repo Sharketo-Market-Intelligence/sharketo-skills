@@ -1,35 +1,25 @@
 # Versioned skill delivery
 
-Skill 0.1.14b2 matches SDK 0.1.14b2, distributed as `sharketo-sdk` and imported as `sharketo`. Check the application's Python environment with `python -c 'from importlib.metadata import version; print(version("sharketo-sdk"))'`. A globally installed skill may not match the project's SDK.
+Skill 0.1.14b3 matches SDK 0.1.14b3, distributed as `sharketo-sdk` and imported as `sharketo`. Check the application's Python environment with `python -c 'from importlib.metadata import version; print(version("sharketo-sdk"))'`. A globally installed skill may not match the project's SDK.
 
 ## Install the SDK from an installed skill
 
-An installed skill does not install the Python package. If the SDK is missing, use Python
-3.11+ in the application's virtual environment. The matching beta **0.1.14b2** targets
-[TestPyPI](https://test.pypi.org/project/sharketo-sdk/0.1.14b2/). Verify exact release
-availability before installing; private repository access is not required. If it is not
-available, use an approved matching wheel as described below.
-
-Download only the SDK wheel from TestPyPI, then install that local file with dependencies
-from PyPI:
+An installed skill does not install the Python package. Use Python 3.11+ in the
+application's virtual environment and install the matching SDK from PyPI:
 
 ```sh
-python -m pip download --index-url https://test.pypi.org/simple/ --no-deps --only-binary=:all: --dest .sharketo-wheel sharketo-sdk==0.1.14b2
-python -m pip install --index-url https://pypi.org/simple/ .sharketo-wheel/sharketo_sdk-0.1.14b2-py3-none-any.whl
+python -m pip install --index-url https://pypi.org/simple/ sharketo-sdk==0.1.14b3
 ```
 
-Do not use `--extra-index-url`, configure TestPyPI as a persistent project index, or resolve
-application dependencies there. Use an environment without other configured extra indexes.
-For a uv-managed project, obtain the same wheel with `uvx pip download` and the download
-options above, then use `uv add ./.sharketo-wheel/sharketo_sdk-0.1.14b2-py3-none-any.whl`
-to record the local dependency. Retain that wheel path for subsequent syncs, or replace it
-with an approved durable artifact source before sharing the project.
+Use an environment without configured extra package indexes. For a uv-managed project:
 
-If the exact release is unavailable, stop and ask for a matching approved artifact; do not
-substitute another version or a private source checkout. An operator-supplied matching
-wheel remains an alternative: `python -m pip install /path/to/sharketo_sdk-0.1.14b2-py3-none-any.whl`.
-TestPyPI availability does not establish production PyPI publication, select a development
-backend, provision credentials or authorize live API calls.
+```sh
+uv add --default-index https://pypi.org/simple/ sharketo-sdk==0.1.14b3
+```
+
+If the matching release is unavailable on PyPI, stop and report the unavailable version.
+Do not substitute another version, package index or source checkout. Installation does
+not configure credentials or grant API access.
 
 The wheel bundles the skill, references, synthetic fixtures and plugin manifests. If the
 skill is already installed, continue with offline verification rather than installing a
@@ -71,9 +61,9 @@ Upgrade the SDK in the application environment and inspect local skill edits. Re
 with `--force` only after approving a complete replacement. Confirm the SDK version and
 refresh the host. A global skill can otherwise describe a different version from the project.
 
-The TestPyPI recipe above is pinned to 0.1.14b2, not a floating latest release. For another
-version or index, verify the exact release and matching skill before changing the pin.
-Do not overwrite or assume updates to an already-published artifact.
+The PyPI installation above is pinned to 0.1.14b3. Select a published matching SDK and
+skill release before changing the pin. Installing a new SDK does not update an existing
+skill automatically.
 
 ## Export and native host wrappers
 

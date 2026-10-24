@@ -1,4 +1,4 @@
-# Dealer Exposures, SDK 0.1.14b2
+# Dealer Exposures, SDK 0.1.14b3
 
 For client reuse and repeated reads, see [application integration](integration.md#http-reads).
 
@@ -63,8 +63,8 @@ Reads return existing snapshots without triggering a refresh.
   available dates and at most 32 warnings. The complete HTTP body is limited to 1 MiB
   by default.
 
-Access requires an existing server-side developer key, verified email, `api_keys` and
-`dealer_exposures.full`. A shared-account budget of 60 requests per minute applies.
+Access requires effective Apex access through `developer_api`, an existing server-side
+developer key, verified email, `api_keys` and `dealer_exposures.full`. A shared-account budget of 60 requests per minute applies.
 Every response is no-store. Use
 [client configuration](integration.md#endpoints-and-environment-configuration) for documented
 production defaults and custom endpoints.
