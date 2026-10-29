@@ -1,4 +1,4 @@
-# Exposure profiles, SDK 0.1.14b3
+# Exposure profiles, SDK 0.1.14b4
 
 For stream lifecycle and status refresh, see [application integration](integration.md#streams).
 

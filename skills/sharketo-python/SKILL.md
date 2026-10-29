@@ -3,7 +3,7 @@ name: sharketo-python
 description: Use when integrating the Sharketo Python SDK into an application, service, report, notebook or dashboard. Covers Index Inventory, prices, crypto inventory, Dealer Exposures, expiry flow, daily history, Seasonality, Volatility, RRG and CTA Flow APIs, async streams, data interpretation, installation, first-time API key setup and read-only access diagnostics.
 license: LICENSE
 metadata:
-  version: "0.1.14b3"
+  version: "0.1.14b4"
 ---
 
 # Sharketo Python SDK

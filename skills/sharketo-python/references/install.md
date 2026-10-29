@@ -1,6 +1,6 @@
 # Versioned skill delivery
 
-Skill 0.1.14b3 matches SDK 0.1.14b3, distributed as `sharketo-sdk` and imported as `sharketo`. Check the application's Python environment with `python -c 'from importlib.metadata import version; print(version("sharketo-sdk"))'`. A globally installed skill may not match the project's SDK.
+Skill 0.1.14b4 matches SDK 0.1.14b4, distributed as `sharketo-sdk` and imported as `sharketo`. Check the application's Python environment with `python -c 'from importlib.metadata import version; print(version("sharketo-sdk"))'`. A globally installed skill may not match the project's SDK.
 
 ## Install the SDK from an installed skill
 
@@ -8,13 +8,13 @@ An installed skill does not install the Python package. Use Python 3.11+ in the
 application's virtual environment and install the matching SDK from PyPI:
 
 ```sh
-python -m pip install --index-url https://pypi.org/simple/ sharketo-sdk==0.1.14b3
+python -m pip install --index-url https://pypi.org/simple/ sharketo-sdk==0.1.14b4
 ```
 
 Use an environment without configured extra package indexes. For a uv-managed project:
 
 ```sh
-uv add --default-index https://pypi.org/simple/ sharketo-sdk==0.1.14b3
+uv add --default-index https://pypi.org/simple/ sharketo-sdk==0.1.14b4
 ```
 
 If the matching release is unavailable on PyPI, stop and report the unavailable version.
@@ -61,7 +61,7 @@ Upgrade the SDK in the application environment and inspect local skill edits. Re
 with `--force` only after approving a complete replacement. Confirm the SDK version and
 refresh the host. A global skill can otherwise describe a different version from the project.
 
-The PyPI installation above is pinned to 0.1.14b3. Select a published matching SDK and
+The PyPI installation above is pinned to 0.1.14b4. Select a published matching SDK and
 skill release before changing the pin. Installing a new SDK does not update an existing
 skill automatically.
 

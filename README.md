@@ -20,12 +20,12 @@ These commands use the tested installer `skills@1.7.4`, which requires Node.js
 The default branch carries the latest distributed skill. To select this release explicitly:
 
 ```sh
-npx skills@1.7.4 add https://github.com/Sharketo-Market-Intelligence/sharketo-skills/tree/v0.1.14b3 --skill sharketo-python -a codex --copy
+npx skills@1.7.4 add https://github.com/Sharketo-Market-Intelligence/sharketo-skills/tree/v0.1.14b4 --skill sharketo-python -a codex --copy
 ```
 
 ## Let your agent install the SDK
 
-The current skill matches SDK **0.1.14b3**, available on **production PyPI**.
+The current skill matches SDK **0.1.14b4**, available on **production PyPI**.
 Skill installation provides instructions and examples; it does not install the Python
 package or grant API access.
 
