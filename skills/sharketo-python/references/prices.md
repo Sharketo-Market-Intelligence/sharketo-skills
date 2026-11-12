@@ -1,4 +1,4 @@
-# Prices, SDK 0.1.14b4
+# Prices, SDK 0.1.15b1
 
 For stream lifecycle and status refresh, see [application integration](integration.md#streams).
 

@@ -14,14 +14,14 @@ Call the synchronous subscription factories below without `await`. Enter the ret
 
 | Async-client factory | Delivered wrapper and payload | Reference |
 | --- | --- | --- |
-| `client.index_inventory.subscribe_summary(ticker)` | `StreamSnapshot.summary: IndexInventorySummaryV1` | [Summary interpretation](#models-and-interpretation) |
-| `client.index_inventory.subscribe_inventory(ticker, include_bookmap=True, include_history=True, include_profiles=False, time_window="session")` | `InventoryStreamSnapshot.inventory: IndexInventoryState` | [Inventory rendering](inventory-rendering.md), [profiles](profiles.md) |
+| `client.index_inventory.subscribe_summary(ticker)` | `StreamSnapshot.summary: IndexInventorySummaryV2` | [Summary interpretation](#models-and-interpretation) |
+| `client.index_inventory.subscribe_inventory(ticker, include_bookmap=True, include_history=True, time_window="session")` | `InventoryStreamSnapshot.inventory: IndexInventoryState` | [Inventory rendering](inventory-rendering.md) |
 | `client.subscribe_prices(ticker)` | `PriceStreamSnapshot.quote: RealTimePriceV1` | [Prices](prices.md) |
 | `client.crypto_inventory.subscribe_inventory(currency, time_window="24h")` | `CryptoInventoryStreamSnapshot.inventory: CryptoInventoryState` | [Crypto inventory](crypto-inventory.md) |
 
-Index subscriptions and prices support SPX and NDX. Crypto supports BTC, ETH and the windows listed in its guide. Rich interests require strict booleans and `time_window="session"`. History and Bookmap default to true. Disable both for current-only views. Enable profiles separately when needed.
+Index subscriptions and prices support SPX and NDX. Crypto supports BTC, ETH and the windows listed in its guide. Rich interests require strict booleans and `time_window="session"`. History and Bookmap default to true. Disable both for current-only views. Exposure profiles and `include_profiles` were removed in 0.1.15b1.
 
-Subscriptions expose `.status`, `.latest`, `aclose()` and async context management. One client shares one socket. Subscriptions with identical service, ticker and options share materialized state. The SDK applies every accepted raw delta before latest-only delivery, which may skip intermediate complete states. A reconnect requires a new full baseline.
+Subscriptions expose `.status`, `.latest`, `aclose()` and async context management. One client shares one socket. Subscriptions with identical service, ticker and options share materialized state. The SDK applies every accepted raw frame before latest-only delivery, which may skip intermediate complete states. A reconnect requires a new full baseline.
 
 Wrappers expose dynamic `.disconnected` and age properties. Rich, price and crypto receipt ages are not publication TTLs. Connectivity and age changes do not yield iterator items. See [stream integration](integration.md#streams) for status refresh, cleanup, the shared lifetime reconnect budget and terminal client failures.
 
@@ -44,11 +44,11 @@ Read a canonical asset or group directly without fetching its catalog first. For
 
 ## Models and interpretation
 
-- `IndexInventorySummary` aliases root-exported `IndexInventorySummaryV1`. `DeveloperAccess` aliases `DeveloperAccessV1`. Generated attributes use snake_case. `.model_dump(by_alias=True)` emits wire aliases. Summary generation and revision are strings. Revision is a decimal u64 and orders results only within one generation. Rich state has no public generation, revision or replay cursor.
-- Summary `exposures_by_expiry_window` is a nullable model, not a dictionary. Its attributes are `.all`, `.monthly`, `.weekly`, `.field_0_dte` and `.field_1_dte`. Their wire aliases are `ALL`, `MONTHLY`, `WEEKLY`, `0DTE` and `1DTE`. Supplied metrics are `gex/dex/vex/vax/vox/tex`.
-- HTTP summaries must be ready. WebSocket summaries can deliver `ready=False`. Ready does not prove current-session trading, complete fields or fresh inputs. Spot, ATM IV, regime, window exposures, session and source timestamps can be null. Zero is not missing.
+- `IndexInventorySummary` aliases root-exported `IndexInventorySummaryV2`. `DeveloperAccess` aliases `DeveloperAccessV2`. They read `GET /v2/developer/inventory/index/{ticker}/summary` and `GET /v2/developer/access`; the summary stream is `indexInventorySummary.v2`. The v1 forms are retired (`SERVICE_RETIRED`); see [upgrading](inventory-rendering.md#upgrading-from-0114b4-or-earlier). Generated attributes use snake_case. `.model_dump(by_alias=True)` emits wire aliases. Summary generation and revision are strings. Revision is a decimal u64 and orders results only within one generation. Rich state has no public generation, revision or replay cursor.
+- Summary `exposures_by_expiry_window` is a nullable model, not a dictionary. Its attributes are `.all`, `.monthly`, `.weekly`, `.field_0_dte` and `.field_1_dte`. Their wire aliases are `ALL`, `MONTHLY`, `WEEKLY`, `0DTE` and `1DTE`. Supplied metrics are `gex/dex/vex/vax/vox/tex` in US dollars: `gex` per 1% move, `vex`/`vax`/`vox` per volatility point, `tex` per hour and `dex` as delta notional. These units differ from SDK 0.1.14b4 and earlier; do not compare values across versions.
+- HTTP summaries must be ready. WebSocket summaries can deliver `ready=False`. Ready does not prove current-session trading, complete fields or fresh inputs. Spot, ATM IV, regime, window exposures, session and source timestamps can be null. `regime_id` is 1–16 or null, and can be null on a ready summary when the signs are not identified. `activity.tracked_trades` and `activity.tracked_contracts` count the live session's prints and are null while unavailable. There is no stale-volatility share. Zero is not missing.
 - `StreamSnapshot` exposes `.received_at_ms`, dynamic `.disconnected` and `.stale`, `.publication_age_seconds` and nullable `.source_age_seconds`. Summary publication lifetime is ten seconds. Source age comes from nullable `data_as_of_ms`. Producer health and reason in `runtime_status.health/reason`, source freshness and transport connectivity are independent. A disconnect marks retained wrappers transport-stale even if publication is recent.
-- Rich state contains frozen dataclasses, read-only maps, tuples and frozen Pydantic leaves. It is not a wire patch, and the whole state has no `.model_dump()` method. See [inventory rendering](inventory-rendering.md) for fields, metadata paths, sparse and null semantics, and continuity. See [profiles](profiles.md) for whole-map profile replacement and separate curve timestamps. Preserve supplied dollarized contributions and financial fields.
+- Rich state contains frozen dataclasses, read-only maps, tuples and frozen Pydantic leaves. It is not a wire patch, and the whole state has no `.model_dump()` method. See [inventory rendering](inventory-rendering.md) for fields, metadata paths, whole-book series replacement, and unavailable versus not-supplied readings. Preserve supplied dollarized contributions and financial fields.
 
 ## Rich safety limits and failure scope
 
@@ -59,12 +59,10 @@ A hydrated session can exceed these SDK limits. The SDK then raises a sanitized 
 | Encoded binary frame / decoded JSON body | 16 MiB / 64 MiB |
 | Summary routing / text controls | 1 MiB summary ceiling / 64 KiB controls |
 | JSON traversal | 8,000,000 value nodes; depth 64, including ignored/additive properties; finite numbers only |
-| Current entries / aggregate history | 20,000 entries / 10,000 rows |
+| Current series / aggregate history | 20,000 series / 10,000 rows |
 | Bookmap retained state, across five expiry windows | 50,000 rows; 1,000,000 sparse cells; ALL source alias not counted twice |
-| Exposure profiles | 20,000 total points across every metric/window; reject, never crop |
 | Strike axis | 4,096 values per Bookmap window |
-| Entry/removal/upsert keys / Bookmap keys | ≤256 / ≤64 characters |
-| Continuity tokens / expiration-type strings | 1–256 / ≤64 characters |
+| Bookmap keys / expiration-type strings | ≤64 / ≤64 characters |
 | Tracked expirations / metadata available-window labels | 20,000 records / ≤16 labels of ≤64 characters |
 
 A protocol failure terminates the shared stream manager and affects its other consumers. Investigate malformed, unsupported or oversized state. Do not retry blindly or replace the stream with unbounded polling. Subscription errors scoped to a feature, parameter or access level can leave unrelated subscriptions live.
@@ -75,7 +73,7 @@ Server omissions, coalescing and latest-only delivery mean replay may be incompl
 
 - `ValueError` covers invalid configuration and arguments, including URLs, keys, tickers, windows, rich interests and missing `websocket_url` for subscriptions. `from_env()` also raises `ValueError` for missing or invalid keys and blank or invalid URL variables. Handle these separately from operational SDK failures. Application code that indexes environment variables may raise `KeyError`. Validate inputs before launching background work.
 - Catch `SharketoError` for operational SDK failures. `APIError` exposes `status_code`, `code`, `request_id`, `retry_after`, `required_capability` and optional `suggested_plan`. `StreamError` has corresponding stream metadata. `ProtocolError`, `TransportError` and `SDKClosedError` cover schema, transport and lifecycle failures. Follow [sanitized error handling](integration.md#configuration-and-error-boundaries). Keep raw bodies, headers, credentials and transport exceptions out of diagnostics.
-- `get_access()` validates existing inventory-summary credentials and reports inventory access and budgets. The API rejects browser sessions and requires current account-level Developer API terms acceptance, verified email, effective Apex access through `developer_api`, and `api_keys` / `inventory.index` capabilities. The v1 response's `required_capabilities` remains the inventory-family pair `api_keys` / `inventory.index`, not every admission rule; Apex is enforced independently. Keys have a one-IP-per-minute limit. Read other request budgets from the response.
+- `get_access()` validates existing inventory-summary credentials and reports inventory access and budgets. The API rejects browser sessions and requires current account-level Developer API terms acceptance, verified email, effective Apex access through `developer_api`, and `api_keys` / `inventory.index` capabilities. The response's `required_capabilities` remains the inventory-family pair `api_keys` / `inventory.index`, not every admission rule; Apex is enforced independently. Keys have a one-IP-per-minute limit. Read other request budgets from the response.
 - `DEVELOPER_TERMS_REQUIRED` means missing or stale account acceptance, not a bad key. HTTP returns terminal `APIError` with status 403; a subscription-addressed WebSocket error raises terminal `StreamError` for that subscription (including shared consumers), leaving unrelated subscriptions live. Neither triggers automatic retry/reconnect. Ask the user to personally review and accept the current terms in the portal via [setup](setup.md#2-review-the-terms-and-reuse-or-generate-a-key); agents must not accept or rotate keys for agreement. Existing customers also need explicit acceptance before Developer requests resume. Resume only after user confirmation, with a new subscription/request under the application’s bounded policy.
 - All SDK Developer HTTP/WS data requires effective Apex access, including prices and `get_access()`. The server evaluates valid paid or explicit grants and their expiry, not just a billing label. Pro portal features, the approved NinjaTrader Key Levels integration and API-key management keep their existing rules. When access is denied, preserve sanitized `required_capability="developer_api"` and `suggested_plan="apex"` if returned. HTTP subscription/capability denials are terminal without retries, even with retry headers. A correctly subscription-addressed WebSocket denial ends that subscription and all shared consumers without reconnecting; unrelated streams remain usable. Resolve authorized access before an explicit new request/subscription. Do not add a client-side plan gate or an extra `get_access()` preflight.
 - Diagnose authentication, entitlement, feature-disabled, retired-service and unsupported-version/schema failures instead of retrying indefinitely. For rate or IP restrictions, use returned retry metadata, bound retries and confirm single-egress deployment. A new subscription on the same client cannot recover a terminal stream manager. See [stream recovery](integration.md#streams).
@@ -85,7 +83,7 @@ Server omissions, coalescing and latest-only delivery mean replay may be incompl
 | Code | Meaning and action |
 | --- | --- |
 | `FEATURE_NOT_AVAILABLE` | The feature is disabled. HTTP returns 404. No automatic retry; confirm availability before explicitly trying again. |
-| `SERVICE_RETIRED` | The operation/service has been withdrawn. HTTP returns 410. No automatic retry; investigate alternatives. |
+| `SERVICE_RETIRED` | The operation/service has been withdrawn. HTTP returns 410. No automatic retry; investigate alternatives. SDK 0.1.14b4 and earlier receive it for the retired v1 inventory summary, access and chart contracts: upgrade to 0.1.15b1. |
 | `UNSUPPORTED_API_VERSION` | The requested API/service version is unsupported. HTTP returns 400. No automatic retry; confirm a compatible contract. |
 
 These codes remain terminal even if an HTTP response includes `Retry-After` or a transient

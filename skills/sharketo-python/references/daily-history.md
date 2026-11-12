@@ -1,4 +1,4 @@
-# Daily inventory history, SDK 0.1.14b4
+# Daily inventory history, SDK 0.1.15b1
 
 For client reuse and repeated reads, see [application integration](integration.md#http-reads).
 
@@ -7,7 +7,7 @@ For client reuse and repeated reads, see [application integration](integration.m
 - Both clients expose `client.index_inventory.get_daily_history(ticker, *, start_date: str, end_date: str)`. Await it on `AsyncSharketoClient`. The method makes one bounded HTTP read. It needs no `get_access()` preflight; access diagnostics are summary-specific.
 - Use canonical `SPX` or `NDX` and explicit inclusive date bounds in canonical `YYYY-MM-DD` format. Dates must be in years 1900..2100, in ascending order and span at most 366 calendar days. There is no implicit latest range, pagination, truncation or ETF support. The SDK rejects invalid bounds before transport.
 - The root-exported `IndexInventoryDailyHistoryV1` has `schema_version/ticker/start_date/end_date/sessions/metadata`. `sessions` is an immutable tuple, and nested leaf records are frozen. Use `sharketo.models.parse_daily_history(payload)` as the shared public validator. Read snake_case attributes and use `.model_dump(mode='json', by_alias=True)` to preserve camelCase wire aliases.
-- Sessions have unique dates in ascending order. Each has `date` and a nullable `timestamp` for the replay valuation instant in UTC Unix milliseconds. It also has `spot` in index points, `atm_iv` as annualized decimal IV, `atm_iv_dte` in calendar days, stored `regime_id` in 0..16, and fixed `exposures` and `z` objects. Both metric objects preserve the complete supported set of nullable finite exposure measures, including `gex/vex/vax/vox/delta/theta/dex/tex/cex`. The fixture enumerates the installed public exposure model to include every measure.
+- Sessions have unique dates in ascending order. Each has `date` and a nullable `timestamp` for the replay valuation instant in UTC Unix milliseconds. It also has `spot` in index points, `atm_iv` as annualized decimal IV, `atm_iv_dte` in calendar days, stored `regime_id` in 0..16, and fixed `exposures` and `z` objects. Both metric objects preserve the complete supported set of twelve nullable finite measures: `cex/colx/delta/dex/gex/tex/theta/vax/vetex/vex/vox/zex`. This daily-history v1 set differs from the live chart's ten `InventoryExposureTotals`; the fixture lists it explicitly.
 - Preserve source zero versus null, including older absent metrics and warmup scores. Values are existing backend replay outputs, not normalized display units. Raw `delta/theta` are not dollarized `dex/tex`. Do not rescale, re-dollarize, reconstruct Greeks, IV or regimes, interpolate gaps or compute local z-scores.
 - Backend z-scores describe standardized exposure context over the complete dataset before request filtering. Window and minimum-session metadata are supplied separately. A shorter request does not recalculate scores. Dataset revisions can change early values. Display returned scores, including null warmup values, without reconstructing the method.
 - The data has reconstructed `coverage='short_dated_replay'`. It is not complete live inventory or a provider-history API. This API adds no intraday multi-session archive.
@@ -34,9 +34,10 @@ Successful responses are `no-store` and contain at most 366 rows and 1,048,576 u
 
 ```python
 import httpx
-from sharketo import IndexInventoryDailyHistoryV1, InventoryExposureTotals, SharketoClient
+from sharketo import IndexInventoryDailyHistoryV1, SharketoClient
 
-metrics = dict.fromkeys(InventoryExposureTotals.model_fields)
+METRICS = "cex colx delta dex gex tex theta vax vetex vex vox zex".split()
+metrics = dict.fromkeys(METRICS)
 payload = {
     "schemaVersion": "index-inventory-daily-history.v1",
     "ticker": "SPX",

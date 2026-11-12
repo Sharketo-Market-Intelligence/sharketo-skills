@@ -3,7 +3,7 @@ name: sharketo-python
 description: Use when integrating the Sharketo Python SDK into an application, service, report, notebook or dashboard. Covers Index Inventory, prices, crypto inventory, Dealer Exposures, expiry flow, daily history, Seasonality, Volatility, RRG and CTA Flow APIs, async streams, data interpretation, installation, first-time API key setup and read-only access diagnostics.
 license: LICENSE
 metadata:
-  version: "0.1.14b4"
+  version: "0.1.15b1"
 ---
 
 # Sharketo Python SDK
@@ -35,8 +35,8 @@ sharing and code publication.
 | Requested data | Reference |
 | --- | --- |
 | SPX/NDX compact inventory summaries | [SDK clients and summary models](references/sdk.md#clients-and-subscriptions) |
-| SPX/NDX strike contributions, exposure/spot/IV history, session Bookmap | [Inventory rendering](references/inventory-rendering.md) |
-| Opt-in conditional-price exposure profiles | [Profiles](references/profiles.md) |
+| SPX/NDX series book, strike contributions, exposure/spot/IV history, session Bookmap | [Inventory rendering](references/inventory-rendering.md) |
+| Upgrading Index Inventory code from SDK 0.1.14b4 or earlier (v1 contracts retired) | [Inventory upgrade notes](references/inventory-rendering.md#upgrading-from-0114b4-or-earlier) |
 | SPX/NDX replacement quotes | [Prices](references/prices.md) |
 | BTC/ETH current crypto exposure state | [Crypto inventory](references/crypto-inventory.md) |
 | SPX/NDX/SPY/QQQ cache-only dealer snapshots | [Dealer Exposures](references/dealer-exposures.md) |
@@ -52,7 +52,7 @@ sharing and code publication.
 
 ## Common boundaries
 
-- Consume complete replacement states instead of handling raw full, delta or tail messages.
+- Consume complete replacement states instead of handling raw full, patch, delta or tail messages.
 - Preserve supplied financial values, classifications, units, signs, provenance and null versus zero. Label application calculations separately.
 - Keep source time, publication time, receipt time and transport status separate. If source freshness is unknown, leave it unknown. For calendar-date fields, follow [date-only display](references/integration.md#calendar-date-display).
 - Keep API keys server-side and out of browser inputs, frontend bundles, notebook cells and outputs, URLs and logs.

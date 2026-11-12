@@ -1,4 +1,4 @@
-# Curated Volatility, SDK 0.1.14b4
+# Curated Volatility, SDK 0.1.15b1
 
 For client reuse and repeated reads, see [application integration](integration.md#http-reads).
 

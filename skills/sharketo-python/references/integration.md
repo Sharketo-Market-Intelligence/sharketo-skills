@@ -158,7 +158,7 @@ Have the application's runner await the coroutine or task. Cancel it or use the 
 
 Refresh status independently of snapshot arrival. Subscription iteration yields replacement snapshots, ends or raises an error. Connectivity changes and advancing ages do not yield items. Have the application's timer or status endpoint re-read `price_status(state)` at its chosen interval. Retained wrappers become disconnected during recovery or cleanup and stay disconnected across connection generations until a new baseline replaces them. Receipt age is not source freshness or a price TTL.
 
-For rich inventory, retain `InventoryStreamSnapshot`, consume its complete `.inventory`, and follow [inventory rendering](inventory-rendering.md). Disable `include_history` and `include_bookmap` for current-only views. Enable profiles separately when needed. Summary and crypto wrappers have their own documented age semantics.
+For rich inventory, retain `InventoryStreamSnapshot`, consume its complete `.inventory`, and follow [inventory rendering](inventory-rendering.md). Disable `include_history` and `include_bookmap` for current-only views. Summary and crypto wrappers have their own documented age semantics.
 
 A subscription-local `StreamError` ends that subscription and its shared consumers, not
 unrelated healthy subscriptions. The application may explicitly create a new subscription
